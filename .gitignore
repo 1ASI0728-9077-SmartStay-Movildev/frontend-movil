@@ -1,0 +1,41 @@
+# Dependencias
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Compilaciones nativas
+android/
+ios/
+*.apk
+*.aab
+*.ipa
+
+# Claves y certificados
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Variables de entorno locales
+.env
+.env.local
+.env*.local
+
+# Metro y TypeScript
+.metro-health-check*
+*.tsbuildinfo
+
+# Logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Sistema y editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
