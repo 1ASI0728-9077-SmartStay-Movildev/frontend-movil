@@ -47,3 +47,34 @@ export type CreateBookingInput = {
   checkInDate: string;
   checkOutDate: string;
 };
+
+export type RoomScene = {
+  room: {
+    widthM: number;
+    lengthM: number;
+    heightM: number;
+    areaM2?: number;
+    floor?: string;
+    wallColor?: string;
+  };
+  walls: {
+    start: { x: number; z: number };
+    end: { x: number; z: number };
+    heightM: number;
+    openings?: { offsetM: number; widthM: number; sillM: number; heightM: number }[];
+  }[];
+  beds: {
+    x: number;
+    z: number;
+    rotationDeg: number;
+    widthM: number;
+    lengthM: number;
+    heightM: number;
+  }[];
+  panels?: { id: string; title: string; text: string }[];
+};
+
+export type Tour = {
+  startNodeId: string;
+  nodes: { id: string; name: string; panorama: string; links?: { nodeId: string }[] }[];
+};

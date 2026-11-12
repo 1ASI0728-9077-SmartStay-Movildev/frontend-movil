@@ -6,6 +6,7 @@ import type { Room } from './src/api/types';
 import { colors, OfflineScreen } from './src/components/ui';
 import BookingsScreen from './src/screens/BookingsScreen';
 import LoginScreen from './src/screens/LoginScreen';
+import ExploreScreen from './src/screens/ExploreScreen';
 import RoomDetailScreen from './src/screens/RoomDetailScreen';
 import RoomsScreen from './src/screens/RoomsScreen';
 import { SessionProvider, useSession } from './src/state/session';
@@ -16,6 +17,7 @@ function Main() {
   const { user, logout } = useSession();
   const [tab, setTab] = useState<Tab>('rooms');
   const [selected, setSelected] = useState<Room | null>(null);
+  const [exploring, setExploring] = useState(false);
 
   if (!user) return <LoginScreen />;
 
@@ -29,12 +31,16 @@ function Main() {
       </View>
 
       <View style={{ flex: 1 }}>
-        {selected ? (
+        {selected && exploring ? (
+          <ExploreScreen room={selected} onBack={() => setExploring(false)} />
+        ) : selected ? (
           <RoomDetailScreen
             room={selected}
+            onExplore={() => setExploring(true)}
             onBack={() => setSelected(null)}
             onBooked={() => {
               setSelected(null);
+              setExploring(false);
               setTab('bookings');
             }}
           />
@@ -52,6 +58,7 @@ function Main() {
             style={s.tab}
             onPress={() => {
               setSelected(null);
+              setExploring(false);
               setTab(t);
             }}
           >
@@ -97,7 +104,7 @@ const s = StyleSheet.create({
   },
   headerTitle: { fontSize: 20, fontWeight: '800', color: colors.primary },
   logout: { color: colors.muted },
-  tabs: { flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e3e7ee' },
+  tabs: { flexDirection: 'row', backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: colors.border },
   tab: { flex: 1, paddingVertical: 14, alignItems: 'center' },
   tabText: { color: colors.muted, fontSize: 15 },
 });

@@ -1,4 +1,5 @@
-import type { AuthUser, Booking, CreateBookingInput, Room } from './types';
+import type { AuthUser, Booking, CreateBookingInput, Room, RoomScene, Tour } from './types';
+
 declare const process: { env: { EXPO_PUBLIC_API_URL?: string } };
 
 // Todo vive solo en memoria: no se usa AsyncStorage ni caché.
@@ -92,6 +93,45 @@ export const api = {
         checkOutDate: `${b.checkOutDate}T00:00:00Z`,
       }),
     }),
+  roomScene: (id: number) => request<RoomScene>(`/api/v1/rooms/${id}/vr`),
+  roomTour: (id: number) => request<Tour>(`/api/v1/rooms/${id}/tour`),
   myBookings: () => request<Booking[]>('/api/v1/bookings/mine'),
   cancelBooking: (id: number) => request<Booking>(`/api/v1/bookings/${id}/cancel`, { method: 'POST' }),
 };
+
+export function validScene(s: RoomScene | null | undefined): s is RoomScene {
+  return !!(
+    s?.room &&
+    [s.room.widthM, s.room.lengthM, s.room.heightM].every((n) => Number.isFinite(n) && n > 0) &&
+    Array.isArray(s.walls) &&
+    Array.isArray(s.beds)
+  );
+}
+
+// Las imágenes se descargan desde la app (así funcionan CORS y la cabecera de ngrok)
+// y se pasan al visor como data URL. Solo se aceptan rutas del mismo servidor.
+export async function fetchImageDataUrl(path: string): Promise<string> {
+  let url: string;
+  if (/^https?:\/\//i.test(path)) {
+    if (!path.toLowerCase().startsWith(baseUrl.toLowerCase() + '/')) {
+      throw new ApiError('El panorama no pertenece al servidor configurado.', 0);
+    }
+    url = path;
+  } else {
+    url = baseUrl + (path.startsWith('/') ? '' : '/') + path;
+  }
+  let res: Response;
+  try {
+    res = await fetch(url, { headers: { 'ngrok-skip-browser-warning': '1' } });
+  } catch {
+    throw new ApiError('No se pudo conectar con el servidor. Revisa tu conexión y la URL.', 0, true);
+  }
+  if (!res.ok) throw new ApiError(`No se pudo cargar la imagen (${res.status}).`, res.status);
+  const blob = await res.blob();
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new ApiError('Imagen inválida.', 0));
+    reader.readAsDataURL(blob);
+  });
+}

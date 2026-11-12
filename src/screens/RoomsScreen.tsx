@@ -76,7 +76,7 @@ export default function RoomsScreen({ onSelect }: { onSelect: (r: Room) => void 
 
 const s = StyleSheet.create({
   filters: { flexDirection: 'row', gap: 8, padding: 12 },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d9dee7', borderRadius: 10, padding: 10 },
+  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 10 },
   card: { backgroundColor: colors.card, borderRadius: 12, padding: 14, marginBottom: 10, elevation: 1 },
   hotel: { fontSize: 18, fontWeight: '700', color: colors.text },
   muted: { color: colors.muted },
