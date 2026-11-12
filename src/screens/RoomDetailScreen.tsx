@@ -17,10 +17,12 @@ export default function RoomDetailScreen({
   room,
   onBack,
   onBooked,
+  onExplore,
 }: {
   room: Room;
   onBack: () => void;
   onBooked: () => void;
+  onExplore: () => void;
 }) {
   const { user } = useSession();
   const [guestName, setGuestName] = useState('');
@@ -91,6 +93,8 @@ export default function RoomDetailScreen({
       </Text>
       {room.amenities.length > 0 && <Text style={s.muted}>Servicios: {room.amenities.join(', ')}</Text>}
 
+      {(room.hasVr || room.tourPath) && <Button title="Explorar en 3D / 360°" variant="outline" onPress={onExplore} />}
+
       <View style={{ height: 16 }} />
       <Text style={s.section}>Reservar</Text>
       <TextInput style={s.input} placeholder="Nombre del huésped" value={guestName} onChangeText={setGuestName} />
@@ -127,5 +131,5 @@ const s = StyleSheet.create({
   line: { fontSize: 16, color: colors.text },
   note: { color: colors.warn, marginVertical: 8 },
   price: { fontSize: 18, fontWeight: '700', color: colors.primary },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#d9dee7', borderRadius: 10, padding: 12, fontSize: 16 },
+  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 12, fontSize: 16 },
 });
