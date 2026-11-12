@@ -2,14 +2,17 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export const colors = {
-  primary: '#1f5eff',
-  bg: '#f5f7fb',
+  primary: '#205b65',
+  bg: '#f4f7fa',
   card: '#ffffff',
-  text: '#16202e',
-  muted: '#6b7685',
-  danger: '#d33b3b',
-  ok: '#1f9d55',
-  warn: '#d98a00',
+  text: '#19334b',
+  muted: '#526775',
+  border: '#d5e0e6',
+  danger: '#8d2921',
+  dangerBg: '#fff1ef',
+  ok: '#1f7a55',
+  warn: '#8a6d1a',
+  soft: '#e3f0f1',
 };
 
 export function Button({
@@ -81,7 +84,7 @@ const s = StyleSheet.create({
   },
   btnOutline: { backgroundColor: 'transparent', borderWidth: 1.5, borderColor: colors.primary },
   btnText: { color: '#fff', fontWeight: '600', fontSize: 16 },
-  error: { color: colors.danger, marginVertical: 8 },
+  error: { color: colors.danger, backgroundColor: colors.dangerBg, borderWidth: 1, borderColor: '#e3b5ad', borderRadius: 8, padding: 10, marginVertical: 8 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 },
   offTitle: { fontSize: 24, fontWeight: '700', color: colors.text, marginBottom: 8 },
   offText: { fontSize: 16, color: colors.muted, textAlign: 'center' },
