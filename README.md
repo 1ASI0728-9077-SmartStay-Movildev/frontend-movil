@@ -1,8 +1,10 @@
 ## Smart Stay – App móvil (Expo / React Native)
 
 App de huésped: login, búsqueda de habitaciones, reserva y "Mis reservas" (con cancelación).
-Todo viene del backend; sin internet muestra "Sin conexión". No guarda nada en el dispositivo
-(el token y la URL del servidor viven solo en memoria). **Sin pagos, Concierge ni tour 360° por ahora.**
+El catálogo y las reservas vienen del backend. Las fichas públicas guardadas y su recepción
+están disponibles sin internet ni sesión. El token y la URL del servidor viven solo en memoria. **Sin pagos, Concierge ni tour 360° por ahora.**
+
+Consulta [fichas offline, biometría y protocolo de prueba Android](docs/offline-biometric.md). Nearby requiere una compilación nativa; Expo Go no admite el módulo.
 
 ## Ejecutar
 
@@ -27,6 +29,7 @@ Los del `seed` del backend (ej. `guest1`).
 
 ## APK
 ```cmd
-npm i -g eas-cli
-eas build -p android --profile preview
+npx expo prebuild --platform android --no-install
+cd android
+gradlew.bat :app:assembleRelease
 ```

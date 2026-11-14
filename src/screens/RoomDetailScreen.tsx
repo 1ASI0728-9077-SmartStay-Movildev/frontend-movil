@@ -1,3 +1,5 @@
+import NearbyScreen from './NearbyScreen';
+import { Card, fromRoom, saveCard } from '../offline/cards';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { api } from '../api/client';
@@ -10,7 +12,9 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 function parseDate(s: string): Date | null {
   if (!DATE_RE.test(s)) return null;
   const d = new Date(`${s}T00:00:00Z`);
-  return Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== s ? null : d;
+  return Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== s
+    ? null
+    : d;
 }
 
 export default function RoomDetailScreen({
@@ -25,6 +29,9 @@ export default function RoomDetailScreen({
   onExplore: () => void;
 }) {
   const { user } = useSession();
+  const [sharing, setSharing] = useState<Card | null>(null);
+  const [obtainedAt] = useState(() => new Date().toISOString());
+  const [saved, setSaved] = useState('');
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [checkIn, setCheckIn] = useState('');
@@ -35,9 +42,14 @@ export default function RoomDetailScreen({
 
   const inD = parseDate(checkIn);
   const outD = parseDate(checkOut);
-  const nights = inD && outD ? Math.round((outD.getTime() - inD.getTime()) / 86400000) : 0;
+  const nights =
+    inD && outD ? Math.round((outD.getTime() - inD.getTime()) / 86400000) : 0;
   const validNights = nights >= 1 && nights <= 30;
-  const canSubmit = guestName.trim() && /\S+@\S+\.\S+/.test(guestEmail) && validNights && room.isBookable;
+  const canSubmit =
+    guestName.trim() &&
+    /\S+@\S+\.\S+/.test(guestEmail) &&
+    validNights &&
+    room.isBookable;
 
   const submit = async () => {
     setError(null);
@@ -58,6 +70,9 @@ export default function RoomDetailScreen({
     }
   };
 
+  if (sharing)
+    return <NearbyScreen card={sharing} onBack={() => setSharing(null)} />;
+
   if (done) {
     return (
       <ScrollView contentContainerStyle={s.container}>
@@ -70,15 +85,45 @@ export default function RoomDetailScreen({
           Total: {done.currency} {done.totalAmount.toFixed(2)}
         </Text>
         <Text style={s.line}>Estado: {done.status}</Text>
-        <Text style={s.note}>El pago aún no está disponible en la app; la reserva queda pendiente.</Text>
+        <Text style={s.note}>
+          El pago aún no está disponible en la app; la reserva queda pendiente.
+        </Text>
         <Button title="Ver mis reservas" onPress={onBooked} />
       </ScrollView>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={s.container} keyboardShouldPersistTaps="handled">
+    <ScrollView
+      contentContainerStyle={s.container}
+      keyboardShouldPersistTaps="handled"
+    >
       <Button title="← Volver" variant="outline" onPress={onBack} />
+      <Button
+        title="Guardar ficha"
+        onPress={() => {
+          try {
+            void saveCard(fromRoom(room, obtainedAt))
+              .then(() =>
+                setSaved('Ficha pública guardada para consultar sin internet.'),
+              )
+              .catch((e) => setError(String(e)));
+          } catch (e) {
+            setError(String(e));
+          }
+        }}
+      />
+      <Button
+        title="Compartir cerca"
+        onPress={() => {
+          try {
+            setSharing(fromRoom(room, obtainedAt));
+          } catch (e) {
+            setError(String(e));
+          }
+        }}
+      />
+      <Text>{saved}</Text>
       <Text style={s.title}>{room.hotelName}</Text>
       <Text style={s.muted}>
         {room.roomTypeName} · {room.district}, {room.city}
@@ -91,13 +136,26 @@ export default function RoomDetailScreen({
       <Text style={s.price}>
         {room.currency} {room.nightlyPrice.toFixed(2)} / noche
       </Text>
-      {room.amenities.length > 0 && <Text style={s.muted}>Servicios: {room.amenities.join(', ')}</Text>}
+      {room.amenities.length > 0 && (
+        <Text style={s.muted}>Servicios: {room.amenities.join(', ')}</Text>
+      )}
 
-      {(room.hasVr || room.tourPath) && <Button title="Explorar en 3D / 360°" variant="outline" onPress={onExplore} />}
+      {(room.hasVr || room.tourPath) && (
+        <Button
+          title="Explorar en 3D / 360°"
+          variant="outline"
+          onPress={onExplore}
+        />
+      )}
 
       <View style={{ height: 16 }} />
       <Text style={s.section}>Reservar</Text>
-      <TextInput style={s.input} placeholder="Nombre del huésped" value={guestName} onChangeText={setGuestName} />
+      <TextInput
+        style={s.input}
+        placeholder="Nombre del huésped"
+        value={guestName}
+        onChangeText={setGuestName}
+      />
       <TextInput
         style={s.input}
         placeholder="Correo"
@@ -106,19 +164,39 @@ export default function RoomDetailScreen({
         autoCapitalize="none"
         keyboardType="email-address"
       />
-      <TextInput style={s.input} placeholder="Entrada (AAAA-MM-DD)" value={checkIn} onChangeText={setCheckIn} keyboardType="numbers-and-punctuation" />
-      <TextInput style={s.input} placeholder="Salida (AAAA-MM-DD)" value={checkOut} onChangeText={setCheckOut} keyboardType="numbers-and-punctuation" />
+      <TextInput
+        style={s.input}
+        placeholder="Entrada (AAAA-MM-DD)"
+        value={checkIn}
+        onChangeText={setCheckIn}
+        keyboardType="numbers-and-punctuation"
+      />
+      <TextInput
+        style={s.input}
+        placeholder="Salida (AAAA-MM-DD)"
+        value={checkOut}
+        onChangeText={setCheckOut}
+        keyboardType="numbers-and-punctuation"
+      />
 
       {validNights ? (
         <Text style={s.line}>
-          {nights} noche(s) · Total estimado: {room.currency} {(nights * room.nightlyPrice).toFixed(2)}
+          {nights} noche(s) · Total estimado: {room.currency}{' '}
+          {(nights * room.nightlyPrice).toFixed(2)}
         </Text>
       ) : checkIn && checkOut ? (
-        <Text style={s.muted}>La estadía debe ser de 1 a 30 noches con fechas válidas.</Text>
+        <Text style={s.muted}>
+          La estadía debe ser de 1 a 30 noches con fechas válidas.
+        </Text>
       ) : null}
       {!user && <Text style={s.muted}>Debes iniciar sesión.</Text>}
       <ErrorText message={error} />
-      <Button title="Reservar" onPress={submit} loading={loading} disabled={!canSubmit} />
+      <Button
+        title="Reservar"
+        onPress={submit}
+        loading={loading}
+        disabled={!canSubmit}
+      />
     </ScrollView>
   );
 }
@@ -131,5 +209,12 @@ const s = StyleSheet.create({
   line: { fontSize: 16, color: colors.text },
   note: { color: colors.warn, marginVertical: 8 },
   price: { fontSize: 18, fontWeight: '700', color: colors.primary },
-  input: { backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 12, fontSize: 16 },
+  input: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    padding: 12,
+    fontSize: 16,
+  },
 });

@@ -39,3 +39,8 @@ yarn-error.*
 Thumbs.db
 .vscode/
 .idea/
+# Local Expo module sources are part of the app (generated root android/ stays ignored).
+!modules/**/android/
+!modules/**/android/**
+modules/**/android/build/
+modules/**/android/.gradle/

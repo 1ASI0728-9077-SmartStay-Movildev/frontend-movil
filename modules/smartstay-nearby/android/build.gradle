@@ -1,0 +1,6 @@
+apply plugin: 'com.android.library'
+apply plugin: 'expo-module-gradle-plugin'
+group = 'pe.smartstay.nearby'
+version = '1.0.0'
+android { namespace 'pe.smartstay.nearby' }
+dependencies { implementation 'com.google.android.gms:play-services-nearby:19.5.1' }

@@ -4,14 +4,18 @@
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "typecheck": "tsc --noEmit"
+    "android": "expo run:android",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test tests/*.cjs"
   },
   "dependencies": {
     "@react-native-community/netinfo": "12.0.1",
     "expo": "~58.0.0",
     "expo-asset": "~58.0.21",
     "expo-build-properties": "~58.0.12",
+    "expo-local-authentication": "~58.0.3",
+    "expo-modules-core": "~58.1.0",
+    "expo-sqlite": "~58.0.16",
     "expo-status-bar": "~58.0.5",
     "react": "19.3.0",
     "react-native": "0.88.1",
@@ -20,7 +24,13 @@
   "devDependencies": {
     "@babel/core": "^7.25.0",
     "@types/react": "~19.3.0",
+    "react-test-renderer": "^19.3.0",
     "typescript": "~6.0.3"
   },
-  "private": true
+  "private": true,
+  "expo": {
+    "autolinking": {
+      "nativeModulesDir": "./modules"
+    }
+  }
 }

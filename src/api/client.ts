@@ -1,3 +1,4 @@
+import NetInfo from '@react-native-community/netinfo';
 import type { AuthUser, Booking, CreateBookingInput, Room, RoomScene, Tour } from './types';
 
 declare const process: { env: { EXPO_PUBLIC_API_URL?: string } };
@@ -41,6 +42,8 @@ async function readError(res: Response): Promise<string> {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const network = await NetInfo.fetch();
+  if (network.isConnected === false || network.isInternetReachable === false) throw new ApiError('Esta operación requiere conexión al servidor.', 0, true);
   const headers: Record<string, string> = {
     Accept: 'application/json',
     // Evita la página de aviso del plan gratuito de ngrok; es inofensivo en otros casos.
