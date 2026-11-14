@@ -1,4 +1,4 @@
-# Smart Stay – App móvil (Expo / React Native)
+## Smart Stay – App móvil (Expo / React Native)
 
 App de huésped: login, búsqueda de habitaciones, reserva y "Mis reservas" (con cancelación).
 Todo viene del backend; sin internet muestra "Sin conexión". No guarda nada en el dispositivo
