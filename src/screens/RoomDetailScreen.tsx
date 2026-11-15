@@ -4,6 +4,7 @@ import { api } from '../api/client';
 import type { Booking, Room } from '../api/types';
 import { Button, colors, ErrorText } from '../components/ui';
 import { useSession } from '../state/session';
+import PaymentScreen from './PaymentScreen';
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -18,17 +19,21 @@ export default function RoomDetailScreen({
   onBack,
   onBooked,
   onExplore,
+  initialDates,
 }: {
   room: Room;
+  initialDates?: { checkIn: string; checkOut: string } | null;
   onBack: () => void;
   onBooked: () => void;
   onExplore: () => void;
 }) {
-  const { user } = useSession();
-  const [guestName, setGuestName] = useState('');
-  const [guestEmail, setGuestEmail] = useState('');
-  const [checkIn, setCheckIn] = useState('');
-  const [checkOut, setCheckOut] = useState('');
+  const { user, profile } = useSession();
+  // Si el usuario tiene perfil, se proponen su nombre y correo.
+  const [guestName, setGuestName] = useState(profile?.fullName ?? '');
+  const [guestEmail, setGuestEmail] = useState(profile?.email ?? '');
+  const [paying, setPaying] = useState(false);
+  const [checkIn, setCheckIn] = useState(initialDates?.checkIn ?? '');
+  const [checkOut, setCheckOut] = useState(initialDates?.checkOut ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<Booking | null>(null);
@@ -58,6 +63,10 @@ export default function RoomDetailScreen({
     }
   };
 
+  if (done && paying) {
+    return <PaymentScreen booking={done} onBack={() => setPaying(false)} onDone={onBooked} />;
+  }
+
   if (done) {
     return (
       <ScrollView contentContainerStyle={s.container}>
@@ -70,8 +79,9 @@ export default function RoomDetailScreen({
           Total: {done.currency} {done.totalAmount.toFixed(2)}
         </Text>
         <Text style={s.line}>Estado: {done.status}</Text>
-        <Text style={s.note}>El pago aún no está disponible en la app; la reserva queda pendiente.</Text>
-        <Button title="Ver mis reservas" onPress={onBooked} />
+        <Text style={s.note}>La reserva queda pendiente y vence en 15 minutos si no se paga.</Text>
+        <Button title="Pagar ahora" onPress={() => setPaying(true)} />
+        <Button title="Pagar después (ver mis reservas)" variant="outline" onPress={onBooked} />
       </ScrollView>
     );
   }
