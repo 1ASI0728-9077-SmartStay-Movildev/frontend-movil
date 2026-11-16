@@ -25,6 +25,7 @@ export default function SavedCardsScreen({
   useEffect(() => {
     let cancelled = false;
     setLive(null);
+    setError('');
     if (online && selected)
       api
         .searchRooms({})

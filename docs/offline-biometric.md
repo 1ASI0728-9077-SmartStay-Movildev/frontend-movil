@@ -59,3 +59,9 @@ Los tests con dobles no sustituyen Android, su diálogo biométrico, expo-sqlite
 6. Restaurar internet/backend en B y abrir ficha: consulta catálogo actual. Iniciar sesión, consultar detalle vigente y crear/cancelar una reserva de prueba mediante el flujo existente del servidor. Verificar que no se hayan copiado datos privados al intercambio ni a SQLite.
 
 Todo este protocolo físico queda pendiente: el entorno no dispone de dos Android ni de backend ejecutándose.
+
+## Revisión posterior antes de reintentar la subida
+
+Se revisó de nuevo la rama, conservando el commit remoto del README. Se corrigió el puente Kotlin para que las funciones Expo no devuelvan objetos Task de Google y para serializar las operaciones Nearby en el hilo principal, junto con sus callbacks de Android. SQLite permite reabrir la base tras un fallo inicial; la vista elimina errores antiguos al volver a consultar.
+
+La suite pasó de cuatro a seis pruebas: se añadió fallo/reintento de apertura de SQLite y salida de Nearby mientras el permiso sigue pendiente, sin iniciar descubrimiento después. TypeScript y diff --check pasan. La compilación Kotlin/Android y las pruebas físicas siguen pendientes; el análisis estático y el bundle JavaScript no las sustituyen.

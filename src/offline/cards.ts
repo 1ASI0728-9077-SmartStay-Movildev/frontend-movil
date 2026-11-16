@@ -116,14 +116,18 @@ export function fromRoom(
 }
 let database: ReturnType<typeof SQLite.openDatabaseAsync> | undefined;
 async function db() {
-  database ??= SQLite.openDatabaseAsync('public-room-cards.db').then(
-    async (d) => {
+  database ??= SQLite.openDatabaseAsync('public-room-cards.db')
+    .then(async (d) => {
       await d.execAsync(
         'CREATE TABLE IF NOT EXISTS cards (hotelId INTEGER NOT NULL, roomId INTEGER NOT NULL, obtainedAt TEXT NOT NULL, json TEXT NOT NULL, PRIMARY KEY(hotelId, roomId))',
       );
       return d;
-    },
-  );
+    })
+    .catch((error: unknown) => {
+      // A denied/open failure must not poison all subsequent retries this session.
+      database = undefined;
+      throw error;
+    });
   return database;
 }
 export async function saveCard(card: Card) {

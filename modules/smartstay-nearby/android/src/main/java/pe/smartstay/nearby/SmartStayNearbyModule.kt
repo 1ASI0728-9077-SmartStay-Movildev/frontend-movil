@@ -2,6 +2,7 @@ package pe.smartstay.nearby
 
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
+import expo.modules.kotlin.functions.Queues
 import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
 
@@ -62,24 +63,28 @@ class SmartStayNearbyModule : Module() {
         override fun onEndpointFound(id: String, info: DiscoveredEndpointInfo) { event("found", id, info.endpointName) }
         override fun onEndpointLost(id: String) { event("lost", id) }
       }, DiscoveryOptions.Builder().setStrategy(Strategy.P2P_POINT_TO_POINT).build()).addOnFailureListener { failure(it) }
-    }
+      Unit
+    }.runOnQueue(Queues.MAIN)
     AsyncFunction("connect") { id: String ->
       check(running && peer == null)
       peer = id
       client.requestConnection("SmartStay", id, lifecycle).addOnFailureListener { failure(it) }
-    }
+      Unit
+    }.runOnQueue(Queues.MAIN)
     AsyncFunction("confirm") { id: String, agree: Boolean ->
       check(running && peer == id)
       if (agree) { accepted = true; client.acceptConnection(id, payloads).addOnFailureListener { failure(it) } }
       else { client.rejectConnection(id); stop() }
-    }
+      Unit
+    }.runOnQueue(Queues.MAIN)
     AsyncFunction("send") { id: String, message: String ->
       check(running && connected && accepted && peer == id)
       val bytes = message.toByteArray(Charsets.UTF_8)
       require(bytes.size <= 4096)
       client.sendPayload(id, Payload.fromBytes(bytes)).addOnFailureListener { failure(it) }
-    }
-    AsyncFunction("stop") { stop() }
+      Unit
+    }.runOnQueue(Queues.MAIN)
+    AsyncFunction("stop") { stop() }.runOnQueue(Queues.MAIN)
     OnActivityEntersBackground { stop() }
     OnDestroy { stop() }
   }

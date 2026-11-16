@@ -214,7 +214,6 @@ test('401 clears in-memory session and backend operations reject offline', async
   let network = { isConnected: true, isInternetReachable: true },
     unauthorized = 0,
     calls = [];
-  const original = global.fetch;
   // Evaluate API in a context with a deterministic fetch rather than contacting a server.
   const code = ts.transpileModule(
     fs.readFileSync(path.join(__dirname, '../src/api/client.ts'), 'utf8'),
@@ -254,4 +253,51 @@ test('401 clears in-memory session and backend operations reject offline', async
     /requiere conexión/,
   );
   assert.equal(calls.length, 1);
+});
+
+test('SQLite initialization failure allows a later retry', async () => {
+  let opens = 0;
+  const cards = load('src/offline/cards.ts', {
+    'expo-sqlite': {
+      openDatabaseAsync: async () => {
+        opens++;
+        if (opens === 1) throw Error('Temporary storage failure');
+        return { execAsync: async () => {}, getAllAsync: async () => [] };
+      },
+    },
+  });
+  await assert.rejects(cards.listCards(), /Temporary storage failure/);
+  assert.equal((await cards.listCards()).length, 0);
+  assert.equal(opens, 2);
+});
+
+test('leaving Nearby during permission request never starts discovery', async () => {
+  let grant,
+    starts = 0;
+  const waiting = new Promise((resolve) => {
+    grant = resolve;
+  });
+  const Screen = load('src/screens/NearbyScreen.tsx', {
+    'react-native': native,
+    '../components/ui': { Button },
+    '../offline/cards': {},
+    '../offline/nearby': {
+      permissions: () => waiting,
+      nearby: {
+        addListener: () => ({ remove() {} }),
+        stop: async () => {},
+        start: async () => {
+          starts++;
+        },
+      },
+    },
+  }).default;
+  let tree;
+  await act(async () => {
+    tree = create(React.createElement(Screen, { onBack() {} }));
+  });
+  await press(tree, 'Iniciar / reintentar');
+  await act(async () => tree.unmount());
+  await act(async () => grant());
+  assert.equal(starts, 0);
 });
